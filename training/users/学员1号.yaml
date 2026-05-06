@@ -1,0 +1,35 @@
+profile:
+  name: 学员1号
+  start_date: 2025-05-06
+  current_level: L2-L3 进阶过渡
+  target_level: 45秒内
+  daily_goal: 20
+  weekly_goal: 5
+
+knowledge:
+  method: 改进版层先法 → 向CFOP过渡
+  cross_level: 中级（能做底面十字）
+  f2l_level: 入门（用层先法方式）
+  oll_level: 入门（十字OLL）
+  pll_level: 入门（2-4个PLL）
+  formulas_learned:
+    f2l: []
+    oll:
+      - 小鱼1
+      - 小鱼2
+    pll:
+      - U Perm (三棱换)
+      - Z Perm (对棱换)
+
+personal_bests:
+  single: 100.00
+  ao5: 100.00
+  ao12: 100.00
+  ao100: 999.99
+
+milestones:
+  - date: 2025-05-06
+    achievement: 开始系统训练！当前水平 1分40秒
+    time: 100
+
+training_log: []
