@@ -17,6 +17,9 @@ cssclasses:
 > PLL = Permutation of Last Layer = 最后一层位置还原
 > 共 21 个公式，建议按优先级分组学习。
 
+![[06-PLL-棱换系列.png|500]]
+![[06-PLL-AT系列.png|400]]
+
 ---
 
 ## 🎯 第一优先级：棱换系列（4个）
