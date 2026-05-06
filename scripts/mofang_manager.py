@@ -7,11 +7,12 @@
 
 import os
 import json
-import yaml
+import sys
 from datetime import datetime
 from pathlib import Path
 import statistics
 
+# 用纯Python JSON替代PyYAML，减少外部依赖
 BASE_DIR = Path(__file__).parent.parent
 USERS_DIR = BASE_DIR / "training" / "users"
 
@@ -23,21 +24,31 @@ def list_users():
     """列出所有用户"""
     if not USERS_DIR.exists():
         return []
-    return [f.stem for f in USERS_DIR.glob("*.yaml")]
+    return [f.stem for f in USERS_DIR.glob("*.json")]
 
 def load_user(username):
     """加载用户数据"""
-    user_file = USERS_DIR / f"{username}.yaml"
+    user_file = USERS_DIR / f"{username}.json"
     if not user_file.exists():
+        # 兼容旧的yaml文件
+        old_file = USERS_DIR / f"{username}.yaml"
+        if old_file.exists():
+            import yaml
+            with open(old_file, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f)
+            # 自动迁移到json
+            save_user(username, data)
+            old_file.unlink()
+            return data
         return None
     with open(user_file, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
+        return json.load(f)
 
 def save_user(username, data):
-    """保存用户数据"""
-    user_file = USERS_DIR / f"{username}.yaml"
+    """保存用户数据（用JSON替代YAML）"""
+    user_file = USERS_DIR / f"{username}.json"
     with open(user_file, 'w', encoding='utf-8') as f:
-        yaml.dump(data, f, allow_unicode=True, default_flow_style=False)
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 def create_user(username, profile_data):
     """创建新用户"""
