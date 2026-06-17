@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mofang · 魔方训练管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --parchment: #f5f4ed;
+    --ivory: #faf9f5;
+    --warm-sand: #e8e6dc;
+    --border: #e8e6dc;
+    --border-soft: #e5e3d8;
+    --brand: #1B365D;
+    --ink-light: #2D5A8A;
+    --near-black: #141413;
+    --dark-warm: #3d3d3a;
+    --olive: #504e49;
+    --stone: #6b6a64;
+    --tag-bg: #EEF2F7;
+    --good: #1aae39;
+    --good-bg: #e6f7ed;
+    --warn: #dd5b00;
+    --warn-bg: #fff2e8;
+    --bad: #b3261e;
+    --bad-bg: #fce8e6;
+    --neutral: #6b6a64;
+    --neutral-bg: #f0f0ee;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--parchment);
+    color: var(--near-black);
+    font-family: 'Inter', -apple-system, system-ui, 'Noto Sans SC', 'PingFang SC', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+  }
+  .app {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ─── Sidebar ───────────────────────────────────────── */
+  .sidebar {
+    background: var(--ivory);
+    border-right: 0.5pt solid var(--border);
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .brand {
+    padding: 0 20px 18px;
+    border-bottom: 0.5pt solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-cube {
+    width: 28px; height: 28px;
+    background:
+      linear-gradient(135deg, #2a9d99 0 33.3%, #dd5b00 33.3% 66.6%, #1B365D 66.6%);
+    border-radius: 4px;
+    position: relative;
+  }
+  .brand-cube::before, .brand-cube::after {
+    content: '';
+    position: absolute;
+    background: rgba(255,255,255,0.18);
+  }
+  .brand-cube::before { top: 33%; left: 0; right: 0; height: 1px; }
+  .brand-cube::after { left: 33%; top: 0; bottom: 0; width: 1px; }
+  .brand-name {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--near-black);
+  }
+  .brand-sub {
+    font-size: 11px;
+    color: var(--stone);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 1px;
+  }
+  .nav {
+    flex: 1;
+    padding: 12px 8px;
+    list-style: none;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--dark-warm);
+    font-size: 13.5px;
+    cursor: pointer;
+    margin-bottom: 2px;
+  }
+  .nav-item.active {
+    background: var(--tag-bg);
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .nav-item .key {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--stone);
+    padding: 1px 5px;
+    border: 0.5pt solid var(--border);
+    border-radius: 3px;
+    background: var(--ivory);
+  }
+  .nav-item .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--good);
+  }
+  .nav-section {
+    font-size: 10.5px;
+    color: var(--stone);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 14px 12px 4px;
+    font-weight: 600;
+  }
+  .sidebar-footer {
+    padding: 14px 20px;
+    border-top: 0.5pt solid var(--border);
+    font-size: 11px;
+    color: var(--stone);
+    line-height: 1.6;
+  }
+  .sidebar-footer b { color: var(--dark-warm); }
+
+  /* ─── Main ──────────────────────────────────────────── */
+  .main {
+    padding: 0;
+  }
+  .topbar {
+    background: var(--ivory);
+    border-bottom: 0.5pt solid var(--border);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .crumbs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--stone);
+  }
+  .crumbs b { color: var(--near-black); font-weight: 600; }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .theme-pill {
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-radius: 9999px;
+    padding: 4px 10px;
+    font-size: 11.5px;
+    color: var(--dark-warm);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .theme-pill b { color: var(--brand); }
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 10px 4px 4px;
+    border-radius: 9999px;
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    font-size: 12px;
+  }
+  .user-chip .av {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: var(--ivory);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .user-chip.yo .av { background: #1B365D; }
+  .user-chip.daughter .av { background: #dd5b00; }
+  .user-chip .caret { color: var(--stone); font-size: 9px; }
+
+  .content {
+    padding: 24px 28px 60px;
+    max-width: 1500px;
+  }
+
+  /* Hero */
+  .hero {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--near-black);
+  }
+  .hero .subtitle {
+    font-size: 13px;
+    color: var(--stone);
+    margin-top: 4px;
+  }
+  .hero-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .btn {
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    color: var(--dark-warm);
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+  }
+  .btn-primary {
+    background: var(--brand);
+    color: var(--ivory);
+    border-color: var(--brand);
+  }
+  .btn .key {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--stone);
+    font-size: 10px;
+    margin-left: 6px;
+  }
+  .btn-primary .key { color: rgba(255,255,255,0.6); }
+
+  /* Stat tiles */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .tile {
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: rgba(0,0,0,0.025) 0px 1px 3px;
+  }
+  .tile-label {
+    font-size: 11px;
+    color: var(--stone);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .tile-value {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--near-black);
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.01em;
+  }
+  .tile-value .unit { font-size: 14px; color: var(--stone); margin-left: 3px; }
+  .tile-delta {
+    font-size: 11px;
+    color: var(--good);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tile-delta.down { color: var(--good); }
+  .tile-delta.up { color: var(--bad); }
+  .tile-sub {
+    font-size: 10.5px;
+    color: var(--stone);
+    margin-top: 4px;
+  }
+  .tile-best {
+    background: var(--good-bg);
+    border-color: rgba(26, 174, 57, 0.2);
+  }
+  .tile-best .tile-value { color: var(--good); }
+  .tile-best .tile-delta { color: var(--good); }
+
+  /* Two user panel */
+  .two-user {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .user-panel {
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .user-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .user-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    color: var(--ivory);
+    font-size: 14px;
+  }
+  .user-avatar.yo { background: #1B365D; }
+  .user-avatar.daughter { background: #dd5b00; }
+  .user-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--near-black);
+  }
+  .user-level {
+    font-size: 11px;
+    color: var(--stone);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .user-tag {
+    margin-left: auto;
+    background: var(--good-bg);
+    color: var(--good);
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 9999px;
+  }
+  .user-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .user-stat {
+    background: var(--parchment);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .user-stat-label {
+    font-size: 10px;
+    color: var(--stone);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .user-stat-value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--near-black);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .user-stat-value .unit { font-size: 10px; color: var(--stone); }
+
+  /* Sparkline + table */
+  .user-body {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 14px;
+  }
+  .spark-card {
+    background: var(--parchment);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .spark-title {
+    font-size: 11px;
+    color: var(--stone);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .spark-title b { color: var(--dark-warm); }
+  .spark {
+    height: 70px;
+    display: flex;
+    align-items: end;
+    gap: 2px;
+  }
+  .spark .bar {
+    flex: 1;
+    background: var(--brand);
+    border-radius: 2px 2px 0 0;
+    opacity: 0.7;
+  }
+  .user-panel.yo .spark .bar { background: #1B365D; }
+  .user-panel.daughter .spark .bar { background: #dd5b00; }
+  .spark-legend {
+    font-size: 10px;
+    color: var(--stone);
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .recent-table {
+    background: var(--parchment);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+  }
+  .recent-table .row {
+    display: grid;
+    grid-template-columns: 50px 1fr 70px 30px;
+    padding: 4px 0;
+    color: var(--dark-warm);
+    border-bottom: 0.5pt dotted var(--border-soft);
+    align-items: center;
+  }
+  .recent-table .row:last-child { border-bottom: none; }
+  .recent-table .row .pb { color: var(--good); font-weight: 600; }
+  .recent-table .row .badge {
+    font-size: 9px;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: var(--good-bg);
+    color: var(--good);
+    text-align: center;
+  }
+  .recent-table .row .dnf {
+    color: var(--bad);
+    font-weight: 600;
+  }
+
+  /* CFOP progress */
+  .cfop-section {
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 22px;
+  }
+  .cfop-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--near-black);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .cfop-title .pct { color: var(--stone); font-size: 12px; font-weight: 400; }
+  .cfop-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 32px;
+  }
+  .formula-group .fg-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--dark-warm);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .formula-group .fg-title .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    background: var(--tag-bg);
+    color: var(--brand);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+  .formula-group .fg-title .total {
+    font-size: 10.5px;
+    color: var(--stone);
+    font-weight: 400;
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--warm-sand);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: var(--brand);
+    border-radius: 3px;
+  }
+  .progress-bar .fill.cross { background: var(--good); width: 100%; }
+  .progress-bar .fill.oll   { background: var(--brand); width: 12.3%; }
+  .progress-bar .fill.pll   { background: var(--ink-light); width: 14.3%; }
+  .progress-bar .fill.f2l   { background: var(--warm-sand); width: 0%; }
+  .case-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    border-radius: 3px;
+    border: 0.5pt solid var(--border);
+    background: var(--ivory);
+    color: var(--dark-warm);
+  }
+  .chip.mastered {
+    background: var(--good-bg);
+    color: var(--good);
+    border-color: rgba(26, 174, 57, 0.2);
+  }
+  .chip.learning {
+    background: var(--warn-bg);
+    color: var(--warn);
+    border-color: rgba(221, 91, 0, 0.2);
+  }
+
+  /* Recent + Timeline row */
+  .row2 {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .panel {
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--near-black);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .panel-title .meta {
+    font-size: 11.5px;
+    color: var(--stone);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .timeline {
+    list-style: none;
+  }
+  .timeline li {
+    display: grid;
+    grid-template-columns: 110px 1fr 90px;
+    padding: 10px 0;
+    border-bottom: 0.5pt dotted var(--border-soft);
+    font-size: 12.5px;
+    align-items: center;
+  }
+  .timeline li:last-child { border-bottom: none; }
+  .timeline .date {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--stone);
+    font-size: 11.5px;
+  }
+  .timeline .label { color: var(--dark-warm); }
+  .timeline .label b { color: var(--near-black); }
+  .timeline .dur {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    text-align: right;
+    color: var(--olive);
+  }
+  .timeline .pb { color: var(--good); font-weight: 600; }
+
+  /* System status */
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+  }
+  .status-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 0.5pt dotted var(--border-soft);
+    font-size: 12.5px;
+  }
+  .status-item .k { color: var(--stone); }
+  .status-item .v {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--near-black);
+    font-weight: 500;
+  }
+  .status-item .v.ok { color: var(--good); }
+  .status-item .v.warn { color: var(--warn); }
+
+  /* Theme palette */
+  .themes {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .theme-card {
+    border: 0.5pt solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    background: var(--ivory);
+    text-align: center;
+    font-size: 11px;
+    color: var(--stone);
+  }
+  .theme-card.active {
+    border-color: var(--brand);
+    background: var(--tag-bg);
+    color: var(--brand);
+    font-weight: 600;
+  }
+  .theme-swatches {
+    display: flex;
+    gap: 2px;
+    height: 12px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
+  .theme-swatches span { flex: 1; }
+
+  /* Footer */
+  .footnote {
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: var(--warm-sand);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--olive);
+    line-height: 1.7;
+  }
+  .footnote b { color: var(--near-black); }
+  .kbd {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    background: var(--ivory);
+    border: 0.5pt solid var(--border);
+    border-bottom-width: 1.5px;
+    border-radius: 3px;
+    padding: 0 5px;
+    color: var(--dark-warm);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── Sidebar ─── -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-cube"></div>
+      <div>
+        <div class="brand-name">mofang</div>
+        <div class="brand-sub">v0.5.0 · TUI</div>
+      </div>
+    </div>
+    <ul class="nav">
+      <li class="nav-section">主导航</li>
+      <li class="nav-item active">
+        <span class="dot"></span> 仪表盘
+        <span class="key">1</span>
+      </li>
+      <li class="nav-item">⏱ 计时器 <span class="key">2</span></li>
+      <li class="nav-item">📊 训练记录 <span class="key">3</span></li>
+      <li class="nav-item">📚 公式库 <span class="key">4</span></li>
+      <li class="nav-item">📈 复盘分析 <span class="key">5</span></li>
+
+      <li class="nav-section">教程</li>
+      <li class="nav-item">入门 · 层先法 <span class="key">6</span></li>
+      <li class="nav-item">CFOP 完整教程 <span class="key">7</span></li>
+      <li class="nav-item">OLL 57 案例 <span class="key">8</span></li>
+      <li class="nav-item">PLL 21 案例 <span class="key">9</span></li>
+
+      <li class="nav-section">系统</li>
+      <li class="nav-item">👥 多用户</li>
+      <li class="nav-item">⚙ 设置</li>
+      <li class="nav-item">❓ 帮助 <span class="key">h</span></li>
+    </ul>
+    <div class="sidebar-footer">
+      <b>设计原则</b><br>
+      快 · 静 · 准<br>
+      <span style="color: var(--stone);">100% 键盘操作 · 启动 &lt;0.5s</span>
+    </div>
+  </aside>
+
+  <!-- ─── Main ─── -->
+  <main class="main">
+    <div class="topbar">
+      <div class="crumbs">
+        <span>mofang</span> › <b>仪表盘</b>
+      </div>
+      <div class="topbar-right">
+        <span class="theme-pill">主题 <b>dark</b> · 切换 <span style="font-family: 'JetBrains Mono';">1/2/3/4</span></span>
+        <span class="user-chip yo">
+          <span class="av">yo</span>
+          <span>yoyoba</span>
+          <span class="caret">▾</span>
+        </span>
+        <span class="user-chip daughter">
+          <span class="av">女</span>
+          <span>女儿</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Hero -->
+      <div class="hero">
+        <div>
+          <h1>训练仪表盘</h1>
+          <div class="subtitle">2026-05-20 · 星期三 · 当前用户 <b style="color: var(--brand);">yoyoba</b> · 等级 L3-CFOP 熟练过渡</div>
+        </div>
+        <div class="hero-right">
+          <button class="btn">导入数据 <span class="key">i</span></button>
+          <button class="btn">导出报告 <span class="key">e</span></button>
+          <button class="btn-primary">开始训练 <span class="key">↵</span></button>
+        </div>
+      </div>
+
+      <!-- 5 stat tiles -->
+      <div class="tiles">
+        <div class="tile">
+          <div class="tile-label">今日还原</div>
+          <div class="tile-value">23<span class="unit">次</span></div>
+          <div class="tile-delta down">▼ 4 较昨日</div>
+          <div class="tile-sub">DNF 0 · 达标 18/23</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">今日平均</div>
+          <div class="tile-value">26.84<span class="unit">s</span></div>
+          <div class="tile-delta down">▼ 1.42s 较昨日</div>
+          <div class="tile-sub">AO5 24.12 · AO12 25.80</div>
+        </div>
+        <div class="tile tile-best">
+          <div class="tile-label">今日最佳 PB</div>
+          <div class="tile-value">22.46<span class="unit">s</span></div>
+          <div class="tile-delta">★ 新 PB · 较前 PB -0.84s</div>
+          <div class="tile-sub">2026-05-20 19:42</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">总训练天数</div>
+          <div class="tile-value">47<span class="unit">天</span></div>
+          <div class="tile-delta down">连续 7 天 🔥</div>
+          <div class="tile-sub">自 2025-05-06 起</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">总还原次数</div>
+          <div class="tile-value">1,234<span class="unit">次</span></div>
+          <div class="tile-delta down">本月 +89</div>
+          <div class="tile-sub">yoyoba 487 · 女儿 124</div>
+        </div>
+      </div>
+
+      <!-- Two user panel -->
+      <div class="two-user">
+
+        <!-- yoyoba panel -->
+        <div class="user-panel yo">
+          <div class="user-panel-header">
+            <div class="user-avatar yo">yo</div>
+            <div>
+              <div class="user-name">yoyoba · 爸爸</div>
+              <div class="user-level">L3 · CFOP 熟练 · 目标 22s 内</div>
+            </div>
+            <span class="user-tag">在练</span>
+          </div>
+          <div class="user-stats">
+            <div class="user-stat">
+              <div class="user-stat-label">AO5</div>
+              <div class="user-stat-value">22.15<span class="unit">s</span></div>
+            </div>
+            <div class="user-stat">
+              <div class="user-stat-label">AO12</div>
+              <div class="user-stat-value">24.80<span class="unit">s</span></div>
+            </div>
+            <div class="user-stat">
+              <div class="user-stat-label">PB Single</div>
+              <div class="user-stat-value">19.40<span class="unit">s</span></div>
+            </div>
+            <div class="user-stat">
+              <div class="user-stat-label">总还原</div>
+              <div class="user-stat-value">487<span class="unit">次</span></div>
+            </div>
+          </div>
+          <div class="user-body">
+            <div class="spark-card">
+              <div class="spark-title">最近 30 次成绩 <b>(秒)</b></div>
+              <div class="spark">
+                <div class="bar" style="height:60%"></div>
+                <div class="bar" style="height:55%"></div>
+                <div class="bar" style="height:48%"></div>
+                <div class="bar" style="height:62%"></div>
+                <div class="bar" style="height:50%"></div>
+                <div class="bar" style="height:45%"></div>
+                <div class="bar" style="height:52%"></div>
+                <div class="bar" style="height:42%"></div>
+                <div class="bar" style="height:58%"></div>
+                <div class="bar" style="height:40%"></div>
+                <div class="bar" style="height:48%"></div>
+                <div class="bar" style="height:38%"></div>
+                <div class="bar" style="height:55%"></div>
+                <div class="bar" style="height:42%"></div>
+                <div class="bar" style="height:36%"></div>
+                <div class="bar" style="height:50%"></div>
+                <div class="bar" style="height:44%"></div>
+                <div class="bar" style="height:32%"></div>
+                <div class="bar" style="height:48%"></div>
+                <div class="bar" style="height:38%"></div>
+                <div class="bar" style="height:46%"></div>
+                <div class="bar" style="height:34%"></div>
+                <div class="bar" style="height:52%"></div>
+                <div class="bar" style="height:42%"></div>
+                <div class="bar" style="height:36%"></div>
+                <div class="bar" style="height:48%"></div>
+                <div class="bar" style="height:40%"></div>
+                <div class="bar" style="height:32%"></div>
+                <div class="bar" style="height:44%"></div>
+                <div class="bar" style="height:38%"></div>
+              </div>
+              <div class="spark-legend"><span>#001</span><span>30 次均值 24.1s</span><span>#030</span></div>
+            </div>
+            <div class="recent-table">
+              <div class="row" style="font-weight:600; color: var(--stone); font-size:10.5px; border-bottom: 0.5pt solid var(--border);">
+                <span>日期</span><span>Session</span><span>均时</span><span></span>
+              </div>
+              <div class="row"><span>05-20</span><span>#S048 · 12次</span><span>22.46s</span><span class="badge">PB</span></div>
+              <div class="row"><span>05-20</span><span>#S047 · 10次</span><span>24.12s</span><span></span></div>
+              <div class="row"><span>05-19</span><span>#S046 · 15次</span><span>25.30s</span><span></span></div>
+              <div class="row"><span>05-19</span><span>#S045 · 8次</span><span>27.85s</span><span></span></div>
+              <div class="row"><span>05-18</span><span>#S044 · 12次</span><span>23.94s</span><span></span></div>
+              <div class="row"><span>05-17</span><span>#S043 · 10次</span><span>26.12s</span><span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- daughter panel -->
+        <div class="user-panel daughter">
+          <div class="user-panel-header">
+            <div class="user-avatar daughter">女</div>
+            <div>
+              <div class="user-name">女儿</div>
+              <div class="user-level">L2 · F2L 入门 · 目标 30s 内</div>
+            </div>
+            <span class="user-tag">在练</span>
+          </div>
+          <div class="user-stats">
+            <div class="user-stat">
+              <div class="user-stat-label">AO5</div>
+              <div class="user-stat-value">28.45<span class="unit">s</span></div>
+            </div>
+            <div class="user-stat">
+              <div class="user-stat-label">AO12</div>
+              <div class="user-stat-value">32.10<span class="unit">s</span></div>
+            </div>
+            <div class="user-stat">
+              <div class="user-stat-label">PB Single</div>
+              <div class="user-stat-value">24.30<span class="unit">s</span></div>
+            </div>
+            <div class="user-stat">
+              <div class="user-stat-label">总还原</div>
+              <div class="user-stat-value">124<span class="unit">次</span></div>
+            </div>
+          </div>
+          <div class="user-body">
+            <div class="spark-card">
+              <div class="spark-title">最近 30 次成绩 <b>(秒)</b></div>
+              <div class="spark">
+                <div class="bar" style="height:78%"></div>
+                <div class="bar" style="height:82%"></div>
+                <div class="bar" style="height:75%"></div>
+                <div class="bar" style="height:70%"></div>
+                <div class="bar" style="height:85%"></div>
+                <div class="bar" style="height:72%"></div>
+                <div class="bar" style="height:68%"></div>
+                <div class="bar" style="height:80%"></div>
+                <div class="bar" style="height:74%"></div>
+                <div class="bar" style="height:66%"></div>
+                <div class="bar" style="height:78%"></div>
+                <div class="bar" style="height:72%"></div>
+                <div class="bar" style="height:64%"></div>
+                <div class="bar" style="height:76%"></div>
+                <div class="bar" style="height:70%"></div>
+                <div class="bar" style="height:62%"></div>
+                <div class="bar" style="height:74%"></div>
+                <div class="bar" style="height:68%"></div>
+                <div class="bar" style="height:60%"></div>
+                <div class="bar" style="height:72%"></div>
+                <div class="bar" style="height:66%"></div>
+                <div class="bar" style="height:58%"></div>
+                <div class="bar" style="height:70%"></div>
+                <div class="bar" style="height:64%"></div>
+                <div class="bar" style="height:56%"></div>
+                <div class="bar" style="height:68%"></div>
+                <div class="bar" style="height:62%"></div>
+                <div class="bar" style="height:54%"></div>
+                <div class="bar" style="height:66%"></div>
+                <div class="bar" style="height:58%"></div>
+              </div>
+              <div class="spark-legend"><span>#001</span><span>30 次均值 31.4s</span><span>#030</span></div>
+            </div>
+            <div class="recent-table">
+              <div class="row" style="font-weight:600; color: var(--stone); font-size:10.5px; border-bottom: 0.5pt solid var(--border);">
+                <span>日期</span><span>Session</span><span>均时</span><span></span>
+              </div>
+              <div class="row"><span>05-20</span><span>#S012 · 8次</span><span>26.10s</span><span class="badge">PB</span></div>
+              <div class="row"><span>05-19</span><span>#S011 · 10次</span><span>28.40s</span><span></span></div>
+              <div class="row"><span>05-18</span><span>#S010 · 12次</span><span>31.20s</span><span></span></div>
+              <div class="row"><span>05-17</span><span>#S009 · 10次</span><span>27.80s</span><span></span></div>
+              <div class="row"><span>05-16</span><span>#S008 · 6次</span><span>33.50s</span><span></span></div>
+              <div class="row"><span>05-15</span><span>#S007 · 8次</span><span>30.10s</span><span></span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CFOP progress -->
+      <div class="cfop-section">
+        <div class="cfop-title">
+          公式学习进度
+          <span class="pct">合计 5/78 已掌握</span>
+          <span class="pct" style="margin-left:auto;">yoyoba 12.4% · 女儿 4.8%</span>
+        </div>
+        <div class="cfop-grid">
+          <div class="formula-group">
+            <div class="fg-title">
+              Cross <span class="num">4/4</span>
+              <span class="total">底面十字 · 入门必会</span>
+            </div>
+            <div class="progress-bar"><div class="fill cross"></div></div>
+            <div class="case-chips">
+              <span class="chip mastered">十字基本型</span>
+              <span class="chip mastered">反十字</span>
+              <span class="chip mastered">双反十字</span>
+              <span class="chip mastered">点十字</span>
+            </div>
+          </div>
+
+          <div class="formula-group">
+            <div class="fg-title">
+              OLL <span class="num">7/57</span>
+              <span class="total">顶层朝向 · 12.3%</span>
+            </div>
+            <div class="progress-bar"><div class="fill oll"></div></div>
+            <div class="case-chips">
+              <span class="chip mastered">小鱼的晚餐</span>
+              <span class="chip mastered">T 字</span>
+              <span class="chip mastered">十字</span>
+              <span class="chip mastered">L 字</span>
+              <span class="chip learning">P 字</span>
+              <span class="chip learning">W 字</span>
+              <span class="chip learning">方块</span>
+              <span class="chip">+ 50</span>
+            </div>
+          </div>
+
+          <div class="formula-group">
+            <div class="fg-title">
+              PLL <span class="num">3/21</span>
+              <span class="total">顶层位置 · 14.3%</span>
+            </div>
+            <div class="progress-bar"><div class="fill pll"></div></div>
+            <div class="case-chips">
+              <span class="chip mastered">Ua · 棱角同向</span>
+              <span class="chip mastered">Z · 对角换棱</span>
+              <span class="chip mastered">H · 单棱换</span>
+              <span class="chip">Ub</span>
+              <span class="chip">Aa</span>
+              <span class="chip">Ab</span>
+              <span class="chip">E</span>
+              <span class="chip">F</span>
+              <span class="chip">Ga</span>
+              <span class="chip">Gb</span>
+              <span class="chip">Gc</span>
+              <span class="chip">Gd</span>
+              <span class="chip">Ja</span>
+              <span class="chip">Jb</span>
+              <span class="chip">Na</span>
+              <span class="chip">Nb</span>
+              <span class="chip">Ra</span>
+              <span class="chip">Rb</span>
+              <span class="chip">T</span>
+              <span class="chip">V</span>
+              <span class="chip">Y</span>
+            </div>
+          </div>
+
+          <div class="formula-group">
+            <div class="fg-title">
+              F2L <span class="num">0/41</span>
+              <span class="total">前两层 · 未开始</span>
+            </div>
+            <div class="progress-bar"><div class="fill f2l"></div></div>
+            <div class="case-chips">
+              <span class="chip">角在底 · 棱对位</span>
+              <span class="chip">角在底 · 棱错位</span>
+              <span class="chip">角在槽 · 棱顶层</span>
+              <span class="chip">...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent + Status row -->
+      <div class="row2">
+        <div class="panel">
+          <div class="panel-title">
+            最近训练 Session
+            <span class="meta">最近 14 天 · 32 个 Session</span>
+          </div>
+          <ul class="timeline">
+            <li>
+              <span class="date">05-20 19:42</span>
+              <span class="label"><b>yoyoba</b> · Session #S048 · 12 次还原 · 全部达标</span>
+              <span class="dur pb">22.46s</span>
+            </li>
+            <li>
+              <span class="date">05-20 18:15</span>
+              <span class="label"><b>女儿</b> · Session #S012 · 8 次还原 · 最佳刷新</span>
+              <span class="dur pb">26.10s</span>
+            </li>
+            <li>
+              <span class="date">05-20 17:30</span>
+              <span class="label"><b>yoyoba</b> · Session #S047 · 10 次 · 1 次 DNF (掉棱)</span>
+              <span class="dur">24.12s</span>
+            </li>
+            <li>
+              <span class="date">05-19 20:10</span>
+              <span class="label"><b>yoyoba</b> · Session #S046 · 15 次还原</span>
+              <span class="dur">25.30s</span>
+            </li>
+            <li>
+              <span class="date">05-19 16:45</span>
+              <span class="label"><b>女儿</b> · Session #S011 · 10 次还原</span>
+              <span class="dur">28.40s</span>
+            </li>
+            <li>
+              <span class="date">05-18 21:00</span>
+              <span class="label"><b>yoyoba</b> · Session #S044 · 12 次 · 完整 CFOP 流程</span>
+              <span class="dur">23.94s</span>
+            </li>
+            <li>
+              <span class="date">05-18 19:30</span>
+              <span class="label"><b>女儿</b> · Session #S010 · 12 次 · 第一次全 CFOP</span>
+              <span class="dur pb">31.20s</span>
+            </li>
+            <li>
+              <span class="date">05-17 20:25</span>
+              <span class="label"><b>yoyoba</b> · Session #S043 · 10 次 · 集中练 PLL 21</span>
+              <span class="dur">26.12s</span>
+            </li>
+            <li>
+              <span class="date">05-17 19:00</span>
+              <span class="label"><b>女儿</b> · Session #S009 · 10 次 · F2L 基础对位</span>
+              <span class="dur">27.80s</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">
+            系统状态
+            <span class="meta">v0.5.0 · Python 3.12 · curses</span>
+          </div>
+          <div class="status-grid">
+            <div class="status-item">
+              <span class="k">用户数</span>
+              <span class="v">2</span>
+            </div>
+            <div class="status-item">
+              <span class="k">总 Session</span>
+              <span class="v">60</span>
+            </div>
+            <div class="status-item">
+              <span class="k">总还原次数</span>
+              <span class="v">1,234</span>
+            </div>
+            <div class="status-item">
+              <span class="k">连续打卡</span>
+              <span class="v ok">7 天 🔥</span>
+            </div>
+            <div class="status-item">
+              <span class="k">最后训练</span>
+              <span class="v">2026-05-20</span>
+            </div>
+            <div class="status-item">
+              <span class="k">数据目录</span>
+              <span class="v" style="font-size:10.5px;">~/.mofang/</span>
+            </div>
+            <div class="status-item">
+              <span class="k">TUI 启动时间</span>
+              <span class="v ok">0.32s ✓</span>
+            </div>
+            <div class="status-item">
+              <span class="k">依赖</span>
+              <span class="v ok">0 (stdlib only)</span>
+            </div>
+            <div class="status-item">
+              <span class="k">公式库</span>
+              <span class="v">OLL 57 · PLL 21</span>
+            </div>
+            <div class="status-item">
+              <span class="k">下次里程碑</span>
+              <span class="v warn">M3 进 30s · 还差 2.4s</span>
+            </div>
+            <div class="status-item">
+              <span class="k">快捷键</span>
+              <span class="v" style="font-size:10.5px;">j/k · 1-9 · ?</span>
+            </div>
+            <div class="status-item">
+              <span class="k">备份</span>
+              <span class="v ok">每日 03:00</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <div class="panel-title" style="margin-bottom: 8px;">
+              主题 <span class="meta">快捷键 1/2/3/4 · L 列表</span>
+            </div>
+            <div class="themes">
+              <div class="theme-card active">
+                <div class="theme-swatches">
+                  <span style="background:#141413"></span>
+                  <span style="background:#1B365D"></span>
+                  <span style="background:#1aae39"></span>
+                  <span style="background:#dd5b00"></span>
+                </div>
+                dark · 当前
+              </div>
+              <div class="theme-card">
+                <div class="theme-swatches">
+                  <span style="background:#faf9f5"></span>
+                  <span style="background:#1B365D"></span>
+                  <span style="background:#1aae39"></span>
+                  <span style="background:#504e49"></span>
+                </div>
+                light
+              </div>
+              <div class="theme-card">
+                <div class="theme-swatches">
+                  <span style="background:#000"></span>
+                  <span style="background:#ffff00"></span>
+                  <span style="background:#00ff00"></span>
+                  <span style="background:#ffffff"></span>
+                </div>
+                high_contrast
+              </div>
+              <div class="theme-card">
+                <div class="theme-swatches">
+                  <span style="background:#002b36"></span>
+                  <span style="background:#268bd2"></span>
+                  <span style="background:#859900"></span>
+                  <span style="background:#93a1a1"></span>
+                </div>
+                solarized_dark
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footnote -->
+      <div class="footnote">
+        <b>设计原则 · 快 / 静 / 准</b><br>
+        键盘优先 · 100% 操作无需鼠标 · 启动 &lt; 0.5s · 训练时无干扰 · ASCII 图表直观展示进步 ·
+        全程 Python stdlib (curses) 实现, <b>零第三方依赖</b>。<br><br>
+        全局快捷键 · <span class="kbd">ESC</span>/<span class="kbd">q</span> 返回 ·
+        <span class="kbd">j</span>/<span class="kbd">↓</span> 向下 · <span class="kbd">k</span>/<span class="kbd">↑</span> 向上 ·
+        <span class="kbd">↵</span> 确认 · <span class="kbd">h</span>/<span class="kbd">?</span> 帮助 ·
+        <span class="kbd">1</span>-<span class="kbd">9</span> 快速跳转 · <span class="kbd">1</span>/<span class="kbd">2</span>/<span class="kbd">3</span>/<span class="kbd">4</span> 切主题
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
