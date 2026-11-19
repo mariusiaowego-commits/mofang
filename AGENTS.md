@@ -2,9 +2,6 @@
 
 三阶魔方速拧学习系统。profile scout 开发，非用户本人项目。
 
-## 项目路径
-`/Users/mt16/dev/mofang`
-
 ## 技术栈
 - Markdown + Obsidian 风格文档
 - Python 辅助脚本 (training/)
@@ -12,7 +9,7 @@
 
 ## 前端参考
 - `mofang-demo.html` — 产品概念 UI demo (40K, 单文件 HTML)
-  - 双用户对比 (yoyoba + 女儿) + CFOP 4 段进度 + 5 KPI tile + 4 主题色板
+  - 双用户对比（家长 + 孩子） + CFOP 4 段进度 + 5 KPI tile + 4 主题色板
   - 以后做真前端页面 (Web dashboard / iPad) 时参考
   - 打开: `open mofang-demo.html` (浏览器开, Cmd+Shift+4 截屏)
   - 数据基于真实 PRD: dashboard.py / user_manager.py / curses_app.py 字段
